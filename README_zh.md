@@ -14,25 +14,31 @@
 
 ## 1. 安装
 
+本项目使用 [`uv`](https://github.com/astral-sh/uv) 进行高效、可复现的依赖管理与环境隔离。
+
 ```bash
-conda create -n zlab_tracking python=3.11 -y
-conda activate zlab_tracking
+# 1. 安装 uv（若尚未安装）
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 先按你的 CUDA 版本安装 torch，例如：
-# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
-
-pip install -e .        # 自动安装 mjlab==1.2.0
+# 2. 一键同步依赖并自动创建虚拟环境（.venv）
+# （自动绑定 Python 3.11 并从官方源下载安装 CUDA 13.0 PyTorch 轮子）
+uv sync
 ```
 
-`scripts/train.py` / `scripts/play.py` 会把仓库 `src/` 提前插入 `sys.path`，
+推荐直接使用 `uv run` 执行脚本，也可以激活虚拟环境后运行：
+```bash
+source .venv/bin/activate
+```
+
+`scripts/train.py` / `scripts/play.py` / `scripts/list_envs.py` 会把仓库 `src/` 提前插入 `sys.path`，
 以保证**内置补丁版 `rsl_rl`**（`src/rsl_rl/`）优先于 site-packages 中的旧版。
-请勿删除这两个脚本顶部的 `sys.path` 逻辑。
+请勿删除这些脚本顶部的 `sys.path` 逻辑。
 
 ## 2. 查看可用任务
 
 ```bash
-python scripts/list_envs.py                  # 列出所有已注册任务
-python scripts/list_envs.py --keyword Z01    # 按关键字过滤
+uv run python scripts/list_envs.py                  # 列出所有已注册任务
+uv run python scripts/list_envs.py --keyword Z01    # 按关键字过滤
 ```
 
 ## 3. 快速开始
@@ -41,14 +47,14 @@ python scripts/list_envs.py --keyword Z01    # 按关键字过滤
 
 ```bash
 # 训练
-python scripts/train.py Z01-StdAddHead-Tracking \
+uv run python scripts/train.py Z01-StdAddHead-Tracking \
   --motion-file=src/assets/motions/z01_std_add_head/demo_act/z01_std_base_heart.npz \
   --env.scene.num-envs=256 \
   --agent.experiment-name=z01_std_add_head_tracking
 # 日志 -> logs/rsl_rl/z01_std_add_head_tracking/<时间戳>/（每 500 次迭代存 model_<iter>.pt）
 
 # 回放
-python scripts/play.py Z01-StdAddHead-Tracking \
+uv run python scripts/play.py Z01-StdAddHead-Tracking \
   --checkpoint-file=logs/rsl_rl/z01_std_add_head_tracking/<RUN_DIR>/model_0.pt \
   --motion-file=src/assets/motions/z01_std_add_head/demo_act/z01_std_base_heart.npz \
   --num-envs 1 --device cpu --viewer native
@@ -58,17 +64,17 @@ python scripts/play.py Z01-StdAddHead-Tracking \
 
 ```bash
 # 训练（崎岖地形，开启地形等级课程）
-python scripts/train.py Z01-StdAddHead-Velocity-Rough \
+uv run python scripts/train.py Z01-StdAddHead-Velocity-Rough \
   --env.scene.num-envs=4096 \
   --agent.experiment-name=z01_std_add_head_velocity
 
 # 训练（平地）
-python scripts/train.py Z01-StdAddHead-Velocity-Flat \
+uv run python scripts/train.py Z01-StdAddHead-Velocity-Flat \
   --env.scene.num-envs=4096 \
   --agent.experiment-name=z01_std_add_head_velocity
 
 # 回放
-python scripts/play.py Z01-StdAddHead-Velocity-Rough \
+uv run python scripts/play.py Z01-StdAddHead-Velocity-Rough \
   --checkpoint-file=logs/rsl_rl/z01_std_add_head_velocity/<RUN_DIR>/model_0.pt \
   --num-envs 1 --device cpu --viewer native
 ```
@@ -143,7 +149,7 @@ src/
 `tools/`：
 
 - `convert_t4_motion_to_z01.py` —— T4（27 自由度）→ Z01（29 自由度）动作转换，主力工具：
-  `python tools/convert_t4_motion_to_z01.py <motion.npz>`（加 `--dry-run` 预览，
+  `uv run python tools/convert_t4_motion_to_z01.py <motion.npz>`（加 `--dry-run` 预览，
   目录参数可批量处理）。
 - `convert_pkl_to_50hz_npz.py` —— pkl → 50 Hz npz 动作。
 - `convert_npz_to_csv.py` / `csv_to_npz.py` —— **遗留** G1 专用脚本，路径写死，

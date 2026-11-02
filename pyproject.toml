@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unitree_rl_mjlab"
+version = "0.1.0"
+description = "Zlab_Gym: Locomotion & Whole-Body Motion Tracking for Z01 Robot based on mjlab"
+readme = "README.md"
+requires-python = ">=3.11, <3.14"
+
+dependencies = [
+    # 1. Core physics simulation and GPU acceleration (strictly pinned)
+    "mjlab==1.2.0",
+    "mujoco==3.8.0",
+    "warp-lang==1.12.0",
+    "mujoco-warp==3.8.0",
+
+    # 2. Deep learning framework (routed to CUDA 13.0 index via tool.uv.sources)
+    "torch>=2.7.0",
+    "torchvision",
+
+    # 3. Scientific and utility libraries
+    "scipy>=1.15.0",
+    "numpy>=1.26.0,<3.0.0",
+    "viser>=0.2.7",
+    "wandb",
+    "tensorboard",
+    "pandas",
+    "matplotlib",
+    "pillow",
+    "tqdm",
+    "tyro",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "pre-commit",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src", "src.*"]
+
+[tool.setuptools.package-data]
+"*" = ["*"]
+
+[tool.uv]
+managed = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }

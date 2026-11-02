@@ -15,25 +15,31 @@ with one motion-tracking task and two velocity tasks:
 
 ## 1. Installation
 
+This project uses [`uv`](https://github.com/astral-sh/uv) for fast, reproducible dependency management and Python environment isolation.
+
 ```bash
-conda create -n zlab_tracking python=3.11 -y
-conda activate zlab_tracking
+# 1. Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install torch first, matching your CUDA, e.g.:
-# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
-
-pip install -e .        # installs mjlab==1.2.0 automatically
+# 2. Sync dependencies and create the virtual environment (.venv)
+# (Automatically pins Python 3.11 and installs PyTorch CUDA 13.0 wheels)
+uv sync
 ```
 
-`src/` is prepended to `sys.path` by `scripts/train.py` / `scripts/play.py`
+You can either run commands using `uv run <command>` (recommended), or activate the virtual environment directly:
+```bash
+source .venv/bin/activate
+```
+
+`src/` is prepended to `sys.path` by `scripts/train.py` / `scripts/play.py` / `scripts/list_envs.py`
 so the **vendored, patched `rsl_rl`** under `src/rsl_rl` takes precedence over
 any site-packages copy. Do not remove those `sys.path` lines.
 
 ## 2. List available tasks
 
 ```bash
-python scripts/list_envs.py            # all registered tasks
-python scripts/list_envs.py --keyword Z01   # filter
+uv run python scripts/list_envs.py            # all registered tasks
+uv run python scripts/list_envs.py --keyword Z01   # filter
 ```
 
 ## 3. Quick start
@@ -42,14 +48,14 @@ python scripts/list_envs.py --keyword Z01   # filter
 
 ```bash
 # Train
-python scripts/train.py Z01-StdAddHead-Tracking \
+uv run python scripts/train.py Z01-StdAddHead-Tracking \
   --motion-file=src/assets/motions/z01_std_add_head/demo_act/z01_std_base_heart.npz \
   --env.scene.num-envs=256 \
   --agent.experiment-name=z01_std_add_head_tracking
 # logs -> logs/rsl_rl/z01_std_add_head_tracking/<timestamp>/  (model_<iter>.pt every 500 iters)
 
 # Play
-python scripts/play.py Z01-StdAddHead-Tracking \
+uv run python scripts/play.py Z01-StdAddHead-Tracking \
   --checkpoint-file=logs/rsl_rl/z01_std_add_head_tracking/<RUN_DIR>/model_0.pt \
   --motion-file=src/assets/motions/z01_std_add_head/demo_act/z01_std_base_heart.npz \
   --num-envs 1 --device cpu --viewer native
@@ -59,17 +65,17 @@ python scripts/play.py Z01-StdAddHead-Tracking \
 
 ```bash
 # Train (rough terrain, terrain-level curriculum)
-python scripts/train.py Z01-StdAddHead-Velocity-Rough \
+uv run python scripts/train.py Z01-StdAddHead-Velocity-Rough \
   --env.scene.num-envs=4096 \
   --agent.experiment-name=z01_std_add_head_velocity
 
 # Train (flat plane)
-python scripts/train.py Z01-StdAddHead-Velocity-Flat \
+uv run python scripts/train.py Z01-StdAddHead-Velocity-Flat \
   --env.scene.num-envs=4096 \
   --agent.experiment-name=z01_std_add_head_velocity
 
 # Play
-python scripts/play.py Z01-StdAddHead-Velocity-Rough \
+uv run python scripts/play.py Z01-StdAddHead-Velocity-Rough \
   --checkpoint-file=logs/rsl_rl/z01_std_add_head_velocity/<RUN_DIR>/model_0.pt \
   --num-envs 1 --device cpu --viewer native
 ```
@@ -146,7 +152,7 @@ src/
 `tools/`:
 
 - `convert_t4_motion_to_z01.py` — T4 (27-DOF) → Z01 (29-DOF) motion conversion, the
-  main tool: `python tools/convert_t4_motion_to_z01.py <motion.npz>`
+  main tool: `uv run python tools/convert_t4_motion_to_z01.py <motion.npz>`
   (`--dry-run` to preview, a directory argument to batch).
 - `convert_pkl_to_50hz_npz.py` — pkl → 50 Hz npz motion.
 - `convert_npz_to_csv.py` / `csv_to_npz.py` — **legacy** G1-specific scripts with

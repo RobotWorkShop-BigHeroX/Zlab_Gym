@@ -6,3 +6,6 @@ wandb
 MUJOCO_LOG.TXT
 *.pyc
 *.pkl
+.agents/
+.venv/
+__pycache__/
