@@ -402,6 +402,11 @@ def z01_std_add_head_rough_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         cfg.observations["actor"].enable_corruption = False
         cfg.events.pop("push_robot", None)
         cfg.curriculum = {}
+
+        # Disable random standing in play mode so joystick commands always take effect.
+        twist_cmd = cfg.commands["twist"]
+        assert isinstance(twist_cmd, UniformVelocityCommandCfg)
+        twist_cmd.rel_standing_envs = 0.0
         cfg.events["randomize_terrain"] = EventTermCfg(
             func=envs_mdp.randomize_terrain,
             mode="reset",
@@ -630,5 +635,7 @@ def z01_std_add_head_flat_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         assert isinstance(twist_cmd, UniformVelocityCommandCfg)
         twist_cmd.ranges.lin_vel_x = (-1.5, 2.0)
         twist_cmd.ranges.ang_vel_z = (-0.7, 0.7)
+        # Disable random standing so joystick commands always take effect.
+        twist_cmd.rel_standing_envs = 0.0
 
     return cfg
