@@ -62,7 +62,32 @@ class TrainConfig:
 
 
 
+class TeeLogger:
+    """Tee stdout/stderr to both console and a log file."""
+    def __init__(self, filename: Path, stream):
+        filename.parent.mkdir(parents=True, exist_ok=True)
+        self.file = open(filename, "a", encoding="utf-8")
+        self.stream = stream
+
+    def write(self, data):
+        self.stream.write(data)
+        self.file.write(data)
+        self.file.flush()
+
+    def flush(self):
+        self.stream.flush()
+        self.file.flush()
+
+    def isatty(self):
+        return getattr(self.stream, "isatty", lambda: False)()
+
+
 def run_train(task_id: str, cfg: TrainConfig, log_dir: Path) -> None:
+    # Set up tee logger so all stdout/stderr are preserved in log_dir/train.log
+    if int(os.environ.get("RANK", "0")) == 0:
+        log_file = log_dir / "train.log"
+        sys.stdout = TeeLogger(log_file, sys.stdout)
+        sys.stderr = TeeLogger(log_file, sys.stderr)
     cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES", "")
     if cuda_visible == "":
         device = "cpu"

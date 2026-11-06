@@ -41,7 +41,7 @@ def z01_std_add_head_velocity_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
         ),
         experiment_name="z01_std_add_head_velocity",
         logger="tensorboard",  # 默认无需 wandb 登录即可训练；可用 --agent.logger=wandb 覆盖
-        save_interval=100,
+        save_interval=3000,
         num_steps_per_env=24,
         max_iterations=30001,
     )
